@@ -1,7 +1,20 @@
-import { Body, Controller, Get, NotFoundException, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  NotFoundException,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { ITask } from './task.model';
 import { CreateTaskDto } from './dto/create-task.dto';
+import { FindOneParams } from './dto/find-one-params';
+import { UpdateTaskStatusDTO } from './dto/update-task.dto';
 
 @Controller('tasks')
 export class TasksController {
@@ -13,20 +26,44 @@ export class TasksController {
   }
 
   @Get('/:id')
-  public findOne(@Param('id') id: string): ITask {
-    const task = this.tasksService.findOne(id)
+  public findOne(@Param() params: FindOneParams): ITask {
+    return this.findOneOrFail(params.id)
+  }
 
-    if(task) {
-        return task;
-    }
-      
-    throw new NotFoundException()
+  @Post()
+  public createTask(@Body() createTaskDto: CreateTaskDto) {
+    return this.tasksService.create(createTaskDto);
   }
 
 
 
-  @Post()
-    public createTask(@Body() createTaskDto: CreateTaskDto) {
-        return  this.tasksService.create(createTaskDto);
+
+  @Patch('/:id/status')
+  public updateStatus(@Param() params: FindOneParams, @Body() body: UpdateTaskStatusDTO): ITask {
+    const task = this.findOneOrFail(params.id)
+    task.status = body.status
+    return task
+
+  }
+
+
+
+  @Delete('/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  public deleteTask(@Param() params: FindOneParams): void {
+    const task = this.findOneOrFail(params.id)
+    this.tasksService.deleteTask(task.id)
+
+  }
+
+
+  private findOneOrFail(id: string): ITask {
+    const task = this.tasksService.findOne(id);
+
+    if (!task) {
+      throw new NotFoundException();
     }
+
+    return task;
+  }
 }

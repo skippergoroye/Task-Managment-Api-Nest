@@ -3,7 +3,6 @@ import { ITask } from './task.model';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { randomUUID } from 'crypto';
 
-
 @Injectable()
 export class TasksService {
   private tasks: ITask[] = [];
@@ -16,13 +15,16 @@ export class TasksService {
     return this.tasks.find((task) => task.id === id);
   }
 
-  create(createTaskDto: CreateTaskDto): ITask {
+  public create(createTaskDto: CreateTaskDto): ITask {
     const task: ITask = {
-        id: randomUUID(),
-        ...createTaskDto,
-        
+      id: randomUUID(),
+      ...createTaskDto,
     };
     this.tasks.push(task);
     return task;
+  }
+
+  public deleteTask(id: string): void {
+    this.tasks = this.tasks.filter((task) => task.id === id);
   }
 }
